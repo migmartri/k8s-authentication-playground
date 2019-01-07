@@ -36,6 +36,16 @@ spec:
             secretKeyRef:
               name: github-client
               key: client-secret
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: google-client
+              key: client-id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: google-client
+              key: client-secret
       volumes:
       - name: config
         configMap:
@@ -67,7 +77,25 @@ data:
         clientID: $GITHUB_CLIENT_ID
         clientSecret: $GITHUB_CLIENT_SECRET
         redirectURI: https://dex.migmartri.com/callback
-        org: kubernetes
+        # orgs:
+        #   - name: bitnami
+    - type: oidc
+      id: google
+      name: Google
+      config:
+        # See: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
+        issuer: https://accounts.google.com
+
+        # Connector config values starting with a "$" will read from the environment.
+        clientID: $GOOGLE_CLIENT_ID
+        clientSecret: $GOOGLE_CLIENT_SECRET
+
+        # Dex's issuer URL + "/callback"
+        redirectURI: https://dex.migmartri.com/callback
+
+        hostedDomains:
+         - bitnami.com
+
     oauth2:
       skipApprovalScreen: true
 
@@ -75,6 +103,7 @@ data:
     - id: echo-server
       redirectURIs:
       - 'https://echo-server.migmartri.com/callback'
+      - 'http://127.0.0.1:5555/callback'
       name: 'Echo server'
       secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 
