@@ -1,13 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: keycloak-gatekeeper-google
+  name: keycloak-gatekeeper-dex
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-          name: keycloak-gatekeeper-google
+          name: keycloak-gatekeeper-dex
       annotations:
         repository: https://github.com/keycloak/keycloak-gatekeeper
     spec:
@@ -19,9 +19,9 @@ spec:
         - name: proxy
           image: keycloak/keycloak-gatekeeper
           args:
-            - --client-id=774136762833-re5mr1sdbn95i2sfl3fh39ehkg8b8vat.apps.googleusercontent.com
-            - --client-secret=bSMoNR9abTYYSG6d7rI9o9i1
-            - --discovery-url=https://accounts.google.com
+            - --client-id=keycloak-gatekeeper
+            - --client-secret=ZXhhbXBsZS1hcHAtc2VjcmV0
+            - --discovery-url=https://dex.migmartri.com
             - --enable-json-logging=true
             - --enable-logging=true
             - --enable-request-id=true
@@ -36,8 +36,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: keycloak-gatekeeper-google
-  name: keycloak-gatekeeper-google
+    app: keycloak-gatekeeper-dex
+  name: keycloak-gatekeeper-dex
 spec:
   ports:
   - name: http
@@ -45,7 +45,7 @@ spec:
     protocol: TCP
     targetPort: 3000
   selector:
-    name: keycloak-gatekeeper-google
+    name: keycloak-gatekeeper-dex
   type: ClusterIP
 ---
 apiVersion: extensions/v1beta1
@@ -55,18 +55,18 @@ metadata:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
   labels:
-    app: keycloak-gatekeeper-google
-  name: keycloak-gatekeeper-google
+    app: keycloak-gatekeeper-dex
+  name: keycloak-gatekeeper-dex
 spec:
   rules:
-  - host: keycloak-gatekeeper-google.migmartri.com
+  - host: keycloak-gatekeeper-dex.migmartri.com
     http:
       paths:
       - backend:
-          serviceName: keycloak-gatekeeper-google
+          serviceName: keycloak-gatekeeper-dex
           servicePort: http
         path: /
   tls:
   - hosts:
-    - keycloak-gatekeeper-google.migmartri.com
-    secretName: keycloak-gatekeeper-google-tls
+    - keycloak-gatekeeper-dex.migmartri.com
+    secretName: keycloak-gatekeeper-dex-tls

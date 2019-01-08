@@ -100,11 +100,15 @@ data:
       skipApprovalScreen: true
 
     staticClients:
-    - id: echo-server
+    - id: example-app
       redirectURIs:
-      - 'https://echo-server.migmartri.com/callback'
       - 'http://127.0.0.1:5555/callback'
-      name: 'Echo server'
+      name: 'Example App'
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+    - id: keycloak-gatekeeper
+      redirectURIs:
+      - https://keycloak-gatekeeper-dex.migmartri.com/oauth/callback
+      name: 'Keycloak gatekeeper'
       secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 
     enablePasswordDB: true
