@@ -29,6 +29,24 @@ data:
         return 200 "healthy\n";
       }
 
+      location /oauth/ {
+        proxy_pass http://{{ template "kubeapps.auth-proxy.fullname" . }}:3000;
+        proxy_set_header Host                    $host;
+        proxy_set_header X-Real-IP               $remote_addr;
+        proxy_set_header X-Scheme                $scheme;
+        proxy_set_header X-Auth-Request-Redirect $request_uri;
+      }
+
+      location = /oauth/expired {
+        proxy_pass http://{{ template "kubeapps.auth-proxy.fullname" . }}:3000;
+        proxy_set_header Host             $host;
+        proxy_set_header X-Real-IP        $remote_addr;
+        proxy_set_header X-Scheme         $scheme;
+        # nginx auth_request includes headers but not body
+        proxy_set_header Content-Length   "";
+        proxy_pass_request_body           off;
+      }
+
       # Using regexp match instead of prefix one because the application can be
       # deployed under a specific path i.e /kubeapps
       location ~* /api/kube {
@@ -64,6 +82,23 @@ data:
       }
 
       location / {
+        # proxy_pass_request_headers on;
+        auth_request /oauth/expired;
+        error_page 401 = /oauth/authorize;
+        auth_request_set $auth $upstream_http_authorization;
+        auth_request_set $email $upstream_http_x_auth_email;
+        auth_request_set $token $upstream_http_x_auth_token;
+
+        proxy_set_header Authorization  $auth;
+        
+        proxy_set_header X-Auth-Email ;
+        proxy_set_header X-Auth-Token $token;
+
+        add_header X-Auth-Email $email;
+        add_header X-Auth-Token $token;
+        add_header X-Auth-Email2 hardcoded@gmail.com;
+
+
         proxy_pass http://{{ template "kubeapps.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }};
       }
     }

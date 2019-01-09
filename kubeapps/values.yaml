@@ -33,7 +33,7 @@ ingress:
     path: /
 
     # Set this to true in order to enable TLS on the ingress record
-    tls: false
+    tls: true
 
     ## If TLS is set to true, you must declare what secret will store the key/certificate for TLS
     tlsSecret: kubeapps.local-tls
@@ -56,8 +56,10 @@ frontend:
   replicaCount: 1
   image:
     registry: docker.io
-    repository: bitnami/nginx
-    tag: 1.14.0-r27
+    # repository: bitnami/nginx
+    repository: nginx
+    # tag: 1.14.0-r27
+    tag: 1.14
   service:
     port: 80
     type: ClusterIP
@@ -70,7 +72,7 @@ frontend:
     timeoutSeconds: 5
   readinessProbe:
     httpGet:
-      path: /
+      path: /healthz
       port: 8080
     initialDelaySeconds: 0
     timeoutSeconds: 5

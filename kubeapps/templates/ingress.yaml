@@ -15,6 +15,10 @@ metadata:
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
+    kubernetes.io/ingress.class: nginx
+    # nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User, X-Auth-Request-Email
+    # nginx.ingress.kubernetes.io/auth-signin: http://kubeapps.minikube/oauth/authorize
+    # nginx.ingress.kubernetes.io/auth-url: http://kubeapps.minikube/oauth/expired
 spec:
   rules:
   {{- range .Values.ingress.hosts }}
@@ -25,6 +29,13 @@ spec:
         backend:
           serviceName: {{ template "kubeapps.fullname" $ }}
           servicePort: http
+  # - host: {{ .name }}
+  #   http:
+  #     paths:
+  #     - path: /oauth
+  #       backend:
+  #         serviceName: {{ template "kubeapps.auth-proxy.fullname" $ }}
+  #         servicePort: http
   {{- end }}
   tls:
   {{- range .Values.ingress.hosts }}
