@@ -1,0 +1,72 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: keycloak-gatekeeper-dex
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+          name: keycloak-gatekeeper-dex
+      annotations:
+        repository: https://github.com/keycloak/keycloak-gatekeeper
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: proxy
+          image: keycloak/keycloak-gatekeeper
+          args:
+            - --client-id=keycloak-gatekeeper
+            - --client-secret=[REDACTED]
+            - --discovery-url=https://dex.migmartri.com
+            - --enable-json-logging=true
+            - --enable-logging=true
+            - --enable-request-id=true
+            - --listen=0.0.0.0:3000
+            - --preserve-host=true
+            - --resources=uri=/*
+            - --upstream-url=http://echo-server:8080
+          securityContext:
+            readOnlyRootFilesystem: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak-gatekeeper-dex
+  name: keycloak-gatekeeper-dex
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    name: keycloak-gatekeeper-dex
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  labels:
+    app: keycloak-gatekeeper-dex
+  name: keycloak-gatekeeper-dex
+spec:
+  rules:
+  - host: keycloak-gatekeeper-dex.migmartri.com
+    http:
+      paths:
+      - backend:
+          serviceName: keycloak-gatekeeper-dex
+          servicePort: http
+        path: /
+  tls:
+  - hosts:
+    - keycloak-gatekeeper-dex.migmartri.com
+    secretName: keycloak-gatekeeper-dex-tls

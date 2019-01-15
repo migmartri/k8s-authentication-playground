@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User, X-Auth-Request-Email
+    nginx.ingress.kubernetes.io/auth-signin: https://oauth2-proxy-echo.migmartri.com/oauth2/start
+    nginx.ingress.kubernetes.io/auth-url: https://oauth2-proxy-echo.migmartri.com/oauth2/auth
+  creationTimestamp: "2019-01-03T21:09:43Z"
+  generation: 2
+  labels:
+    name: oauth2-proxy-echo
+  name: echo-server
+spec:
+  rules:
+  - host: oauth2-proxy-echo.migmartri.com
+    http:
+      paths:
+      - backend:
+          serviceName: oauth2-proxy
+          servicePort: 4180
+        path: /oauth2
+  - host: oauth2-proxy-echo.migmartri.com
+    http:
+      paths:
+      - backend:
+          serviceName: echo-server
+          servicePort: 8080
+        path: /
+  tls:
+  - hosts:
+    - oauth2-proxy-echo.migmartri.com
+    secretName: echo-oauth2-server-tls

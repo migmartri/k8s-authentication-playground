@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "kubeapps.auth-proxy.fullname" . }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "kubeapps.auth-proxy.fullname" . }}
+        chart: {{ template "kubeapps.chart" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+    spec:
+      containers:
+        - name: proxy
+          image: keycloak/keycloak-gatekeeper
+          args:
+            - --client-id=kubernetes
+            - --client-secret=not-needed
+            - --discovery-url=https://keycloak.migmartri.com/auth/realms/master
+            - --listen=0.0.0.0:3000
+            - --verbose
+            - --resources=uri=/api/kube/*|white-listed=true
+            - --resources=uri=/api/chartsvc/*|white-listed=true
+            - --resources=uri=/api/tiller-proxy/*|white-listed=true
+            - --upstream-url=http://{{ template "kubeapps.fullname" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "kubeapps.auth-proxy.fullname" . }}
+  labels:
+    app: {{ template "kubeapps.name" . }}
+    chart: {{ template "kubeapps.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: {{ template "kubeapps.auth-proxy.fullname" . }}
+    release: {{ .Release.Name }}
+
